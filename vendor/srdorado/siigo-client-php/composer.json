@@ -1,0 +1,42 @@
+{
+    "name": "srdorado/siigo-client-php",
+    "description": "Consumer client of the siigo api (https://siigoapi.docs.apiary.io/#)",
+    "keywords": ["siigo","api","php"],
+    "homepage": "https://github.com/srdorado/siigo-client-php",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Danie Eduardo Dordao P.",
+            "email": "doradodaniel14@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.2",
+        "guzzlehttp/guzzle": "7.5.0",
+        "spatie/guzzle-rate-limiter-middleware": "2.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Srdorado\\SiigoClient\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.5.31",
+        "squizlabs/php_codesniffer": "^3.7"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Srdorado\\SiigoClient\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "phpcs-check": "phpcs --colors -s",
+        "phpcs-fix": "phpcbf --colors -s",
+        "phpcs-auto-check": "@phpcs-check --standard=.phpcs.xml",
+        "phpcs-auto-fix": "@phpcs-fix --standard=.phpcs.xml",
+        "phpcs-auto-check-summary": "phpcs --report=summary -p",
+        "phpcs-auto-fix-summary": "phpcbf --report=summary -p"
+    }
+}
