@@ -8,6 +8,8 @@ use App\Querys\QueryHandler;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 
+session_start();
+
 function crearFactura()
 {
     $invoiceMapped = new InvoiceMappedJson();
@@ -32,12 +34,12 @@ function crearFactura()
         $mapInvoice = $invoiceMapped->createJson($data);
 
         //! Crea la factura en base a los datos procesados anteriormente
-        // $response = $siigo->createInvoice($token, $mapInvoice);
+        $response = $siigo->createInvoice($token, $mapInvoice);
 
         //! Obtiene la informacion desde siigo por su id
         // $list = $siigo->getInvoiceById($token, '69d75011-acdc-4c05-a84f-61f302341b2f');
 
-        $_SESSION['response'] = "lorem";
+        $_SESSION['response'] = $response;
         header("Location: ./?success=1");
     } catch (PDOException $e) {
         echo "Error al ejecutar la consulta: " . $e->getMessage();
@@ -74,15 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <?php
-    echo $_GET['success'];
-    echo $_SESSION['response'];
     if (isset($_GET['success']) && $_GET['success'] == 1 && isset($_SESSION['response'])) {
         echo "<p style='color: green;'>Factura creada correctamente.</p>";
         echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
-        // unset($_SESSION['response']);
+        unset($_SESSION['response']);
     } else if (isset($_GET['success']) && $_GET['success'] == 0 && isset($_SESSION['response'])) {
         echo "<p style='color: green;'>Factura creada correctamente.</p>";
         echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
+        unset($_SESSION['response']);
     }
     ?>
 

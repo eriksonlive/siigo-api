@@ -18,7 +18,7 @@ class InvoiceMappedJson
                 "id_type" => "13", // Código ficticio para tipo de identificación (modifícalo según tu lógica)
                 "identification" => $data[0]['nit_sin_df'],
                 "branch_office" => 0,
-                "name" => explode(" ", $data[0]['razonsocial']), // Divide nombre en partes
+                "name" => explode(" ", $data[0]['razonsocial'], 2), // Divide nombre en partes
                 "address" => [
                     "address" => $data[0]['direccion'],
                     "city" => [
