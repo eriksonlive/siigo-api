@@ -13,6 +13,7 @@ class InvoiceMappedJson
                 "id" => $data[0]['num_factura'] // Usamos 'num_factura' como ID
             ],
             "date" => date("Y-m-d"), // Fecha actual
+            "number" => $data[0]['num_factura'],
             "customer" => [
                 "person_type" => $data[0]['tipo_persona'] === 'Natural' ? "Person" : "Company",
                 "id_type" => "13", // Código ficticio para tipo de identificación (modifícalo según tu lógica)

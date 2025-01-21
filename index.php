@@ -23,7 +23,10 @@ function crearFactura()
         $queryHandler = new QueryHandler();
         $data = $queryHandler->getInvoice($idFactura);
 
-        $data[0]['num_factura'] = '28239';
+        // var_dump($data);
+        // die();
+
+        $data[0]['tipo_factura'] = '28239';
         $data[0]['vendedor'] = '62';
         $data[0]['codigo_producto'] = '070273-17923';
         $data[0]['declara_iva'] = '19203';
