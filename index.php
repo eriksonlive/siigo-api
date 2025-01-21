@@ -1,199 +1,91 @@
 <?php
 
-require 'vendor/autoload.php';
+require_once __DIR__ . '/bootstrap.php';
 
-use Srdorado\SiigoClient\Factory\ClientFactory;
-use Srdorado\SiigoClient\Enum\ClientType;
-use Srdorado\SiigoClient\Model\Entity;
+use App\Controller\InvoiceController;
+use App\Invoice\InvoiceMappedJson;
+use App\Querys\QueryHandler;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 
-function getToken()
+function crearFactura()
 {
-    // Crear el cliente para obtener el token
-    $clientFactory = new ClientFactory();
-    $clientTokenFactory = $clientFactory->create(ClientType::TOKEN);
-    $clientToken = $clientTokenFactory->create();
-    $clientToken->setBaseUrl('https://api.siigo.com/');
+    $invoiceMapped = new InvoiceMappedJson();
+    $siigo = new InvoiceController();
+    $token = $siigo->getToken();
+    $idFactura = 6472;
 
-    // Crear la entidad con las credenciales
-    $entity = new Entity(ClientType::TOKEN);
-    $entity->setData([
-        'username' => 'sandbox@siigoapi.com',
-        'access_key' => 'NDllMzI0NmEtNjExZC00NGM3LWE3OTQtMWUyNTNlZWU0ZTM0OkosU2MwLD4xQ08='
-    ]);
+    try {
 
-    // Solicitar el token
-    $response = $clientToken->getToken($entity);
+        //! Obtiene la info de la base de datos
+        $queryHandler = new QueryHandler();
+        $data = $queryHandler->getInvoice($idFactura);
 
-    return $response;
-}
+        $data[0]['num_factura'] = '28239';
+        $data[0]['vendedor'] = '62';
+        $data[0]['codigo_producto'] = '070273-17923';
+        $data[0]['declara_iva'] = '19203';
+        $data[0]['id_medio_pago'] = '8113';
+        $data[0]['valor_pago'] = '35700';
 
-function getInvoices($token)
-{
-    // Crear el cliente de facturas
-    $clientFactory = new ClientFactory();
-    $clientInvoiceFactory = $clientFactory->create(ClientType::INVOICE);
-    $clientInvoice = $clientInvoiceFactory->create();
-    $clientInvoice->setBaseUrl('https://api.siigo.com/');
+        //! Mapea la informacion para procesarla
+        $mapInvoice = $invoiceMapped->createJson($data);
 
-    $clientInvoice->setAccessToken($token);
-    $clientInvoice->setScope('SGM');
+        //! Crea la factura en base a los datos procesados anteriormente
+        // $response = $siigo->createInvoice($token, $mapInvoice);
 
-    $entity = new Entity(ClientType::INVOICE);
-    $entity->setData([
-        'page' => 1,
-        'page_size' => 5
-    ]);
+        //! Obtiene la informacion desde siigo por su id
+        // $list = $siigo->getInvoiceById($token, '69d75011-acdc-4c05-a84f-61f302341b2f');
 
-    $response = $clientInvoice->getAll($entity);
-
-    return $response;
-}
-
-function getInvoiceById($token)
-{
-    // Crear el cliente de facturas
-    $clientFactory = new ClientFactory();
-    $clientInvoiceFactory = $clientFactory->create(ClientType::INVOICE);
-    $clientInvoice = $clientInvoiceFactory->create();
-    $clientInvoice->setBaseUrl('https://api.siigo.com/');
-
-    $clientInvoice->setAccessToken($token);
-    $clientInvoice->setScope('SGM');
-
-    $entity = new Entity(ClientType::INVOICE);
-    $entity->setData(['af92bcd0-438a-410f-a9c2-ad3ccf0661cd']);
-
-    $response = $clientInvoice->getById($entity);
-
-    return $response;
-}
-
-function createInvoice($token)
-{
-    $clientFactory = new ClientFactory();
-    $clientInvoiceFactory = $clientFactory->create(ClientType::INVOICE);
-    $clientInvoice = $clientInvoiceFactory->create();
-    $clientInvoice->setBaseUrl('https://api.siigo.com/');
-
-    $clientInvoice->setAccessToken($token);
-    $clientInvoice->setScope('SGM');
-
-    $invoiceData = [
-        "document" => [
-            "id" => "28239"
-        ],
-        "date" => "2025-01-18",
-        "customer" => [
-            "person_type" => "Person",
-            "id_type" => "13",
-            "identification" => "1020477",
-            "branch_office" => 0,
-            "name" => ["Lorem", "ipsum"],
-            "address" => [
-                "address" => "Cra. 18 #79A - 42",
-                "city" => [
-                    "country_code" => "Co",
-                    "country_name" => "Colombia",
-                    "state_code" => "19",
-                    "state_name" => "Antioquia",
-                    "city_code" => "19001",
-                    "city_name" => "Medellin"
-                ],
-                "postal_code" => "110911"
-            ],
-            "phones" => [
-                [
-                    "indicative" => "57",
-                    "number" => "3006003345",
-                    "extension" => "132"
-                ]
-            ],
-            "contacts" => [
-                [
-                    "first_name" => "Marcos",
-                    "last_name" => "Castillo",
-                    "email" => "marcos.castillo@contacto.com",
-                    "phone" => [
-                        "indicative" => "57",
-                        "number" => "3006003345",
-                        "extension" => "132"
-                    ]
-                ]
-            ]
-        ],
-        "currency" => [
-            "code" => "USD",
-            "exchange_rate" => 3825.03
-        ],
-        "seller" => 62,
-        "stamp" => [
-            "send" => true
-        ],
-        "mail" => [
-            "send" => true
-        ],
-        "observations" => "Observaciones",
-        "items" => [
-            [
-                "code" => "Item-1",
-                "description" => "Camiseta de algodón",
-                "quantity" => 1,
-                "price" => 1069.77,
-                "discount" => 0.0,
-                "taxes" => [
-                    [
-                        "id" => 19187
-                    ]
-                ]
-            ]
-        ],
-        "payments" => [
-            [
-                "id" => 8113,
-                "value" => 1176.75,
-                "due_date" => "2021-03-19"
-            ]
-        ],
-        "globaldiscounts" => [
-            [
-                "id" => 13156,
-                "percentage" => 10.00,
-                "value" => 100.0
-            ]
-        ]
-    ];
-
-    $entity = new Entity(ClientType::INVOICE);
-    $entity->setData($invoiceData);
-
-    $response = $clientInvoice->create($entity);
-
-    // Verificar si la respuesta es exitosa
-    if ($response) {
-        echo "Factura creada correctamente:\n";
-        // print_r($response);  // Muestra los detalles de la factura creada
-    } else {
-        echo "Error al crear la factura.\n";
+        $_SESSION['response'] = "lorem";
+        header("Location: ./?success=1");
+    } catch (PDOException $e) {
+        echo "Error al ejecutar la consulta: " . $e->getMessage();
+        $_SESSION['response'] = $e->getMessage();
+        header("Location: ./?success=0");
+    } catch (ClientException | ServerException $e) {
+        echo "Error de cliente o servidor: " . $e->getMessage();
+        $_SESSION['response'] = $e->getMessage();
+        header("Location: ./?success=0");
+    } catch (Exception $e) {
+        echo "Error inesperado: " . $e->getMessage();
+        $_SESSION['response'] = $e->getMessage();
+        header("Location: ./?success=0");
     }
-
-    return $response;
 }
 
-// Obtener el token
-$token = getToken();
-if ($token) {
-    // echo "Token obtenido correctamente.\n";
-
-    $lorem = getInvoice($token);
-    var_dump($lorem);
-
-    // $result = createInvoice($token);
-    // var_dump($result);
-
-    // Crear un producto
-    // $product = createProduct($token);
-    // echo "Producto creado:\n";
-    // print_r($product);
-} else {
-    echo "Error al obtener el token.\n";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    crearFactura();
 }
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="" method="post">
+        <button type="submit">Crear factura</button>
+    </form>
+
+    <?php
+    echo $_GET['success'];
+    echo $_SESSION['response'];
+    if (isset($_GET['success']) && $_GET['success'] == 1 && isset($_SESSION['response'])) {
+        echo "<p style='color: green;'>Factura creada correctamente.</p>";
+        echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
+        // unset($_SESSION['response']);
+    } else if (isset($_GET['success']) && $_GET['success'] == 0 && isset($_SESSION['response'])) {
+        echo "<p style='color: green;'>Factura creada correctamente.</p>";
+        echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
+    }
+    ?>
+
+</body>
+
+</html>
