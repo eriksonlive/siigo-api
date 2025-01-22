@@ -23,18 +23,28 @@ function crearFactura()
         $queryHandler = new QueryHandler();
         $data = $queryHandler->getInvoice($idFactura);
 
-        // var_dump($data);
+        // echo '<pre>';
+        // print_r($data);
+        // echo '</pre>';
         // die();
 
-        $data[0]['tipo_factura'] = '28239';
+        $data[0]['num_factura'] = '28239';
+        $data[0]['nit_sin_df'] = '8300033684';
+        $data[0]['direccion'] = 'CRA 13A 77A 64';
+        $data[0]['correodestinatario'] = 'gramirez@pruebas.com.co';
         $data[0]['vendedor'] = '62';
         $data[0]['codigo_producto'] = '070273-17923';
         $data[0]['declara_iva'] = '19203';
         $data[0]['id_medio_pago'] = '8113';
-        $data[0]['valor_pago'] = '35700';
+        $data[0]['valor_pago'] = '71400';
 
         //! Mapea la informacion para procesarla
         $mapInvoice = $invoiceMapped->createJson($data);
+
+        // echo '<pre>';
+        // print_r($mapInvoice);
+        // echo '</pre>';
+        // die();
 
         //! Crea la factura en base a los datos procesados anteriormente
         $response = $siigo->createInvoice($token, $mapInvoice);
@@ -84,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
         unset($_SESSION['response']);
     } else if (isset($_GET['success']) && $_GET['success'] == 0 && isset($_SESSION['response'])) {
-        echo "<p style='color: green;'>Factura creada correctamente.</p>";
+        echo "<p style='color: red;'>Error al procesar los datos</p>";
         echo "<pre>" . print_r($_SESSION['response'], true) . "</pre>";
         unset($_SESSION['response']);
     }

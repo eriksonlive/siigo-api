@@ -8,18 +8,80 @@ class InvoiceMappedJson
 {
     public function createJson($data = [])
     {
+        $data[0]['items'] = [
+            [
+                'codigo_producto' => $data[0]['codigo_producto'],
+                'producto' => $data[0]['producto'],
+                'cantidad' => (int) $data[0]['cantidad'],
+                'precio' => (float) $data[0]['precio'],
+                'descuento' => (float) $data[0]['descuento'],
+                'declara_iva' => (int) $data[0]['declara_iva']
+            ],
+            [
+                'codigo_producto' => $data[0]['codigo_producto'],
+                'producto' => $data[0]['producto'],
+                'cantidad' => (int) $data[0]['cantidad'],
+                'precio' => (float) $data[0]['precio'],
+                'descuento' => (float) $data[0]['descuento'],
+                'declara_iva' => (int) $data[0]['declara_iva']
+            ],
+        ];
+
+        $data[0]['methods_pay'] = [
+            [
+                'id_medio_pago' => (int) $data[0]['id_medio_pago'],
+                'valor_pago' => (float) $data[0]['valor_pago'],
+                'fecha_pago' => $data[0]['fecha_pago']
+            ],
+        ];
+
+        unset($data[0]['codigo_producto']);
+        unset($data[0]['producto']);
+        unset($data[0]['cantidad']);
+        unset($data[0]['precio']);
+        unset($data[0]['descuento']);
+        unset($data[0]['declara_iva']);
+        unset($data[0]['id_medio_pago']);
+        unset($data[0]['valor_pago']);
+        unset($data[0]['fecha_pago']);
+
+        $items = [];
+        $payments = [];
+
+        foreach ($data[0]['items'] as $cl => $vl) {
+            $items[$cl] = [
+                "code" => $vl['codigo_producto'],
+                "description" => $vl['producto'],
+                "quantity" => (int) $vl['cantidad'],
+                "price" => (float) $vl['precio'],
+                "discount" => (float) $vl['descuento'],
+                "taxes" => [
+                    [
+                        "id" => (int) $vl['declara_iva']
+                    ]
+                ]
+            ];
+        }
+
+        foreach ($data[0]['methods_pay'] as $cl => $vl) {
+            $payments[$cl] = [
+                "id" => (int) $vl['id_medio_pago'],
+                "value" => (float) $vl['valor_pago'],
+                "due_date" => $vl['fecha_pago']
+            ];
+        }
+
         $mappedData = [
             "document" => [
                 "id" => $data[0]['num_factura'] // Usamos 'num_factura' como ID
             ],
             "date" => date("Y-m-d"), // Fecha actual
-            "number" => $data[0]['num_factura'],
             "customer" => [
                 "person_type" => $data[0]['tipo_persona'] === 'Natural' ? "Person" : "Company",
-                "id_type" => "13", // Código ficticio para tipo de identificación (modifícalo según tu lógica)
+                "id_type" => $data[0]['tipo_persona'] === 'Natural' ? "13" : "31", // Código ficticio para tipo de identificación (modifícalo según tu lógica)
                 "identification" => $data[0]['nit_sin_df'],
                 "branch_office" => 0,
-                "name" => explode(" ", $data[0]['razonsocial'], 2), // Divide nombre en partes
+                "name" => $data[0]['tipo_persona'] === 'Natural' ? explode(" ", $data[0]['razonsocial'], 2) : $data[0]['razonsocial'], // Divide nombre en partes
                 "address" => [
                     "address" => $data[0]['direccion'],
                     "city" => [
@@ -52,31 +114,17 @@ class InvoiceMappedJson
                 "send" => true
             ],
             "observations" => $data[0]['notas'] ?? "Sin observaciones",
-            "items" => [
-                [
-                    "code" => $data[0]['codigo_producto'],
-                    "description" => $data[0]['producto'],
-                    "quantity" => (int) $data[0]['cantidad'],
-                    "price" => (float) $data[0]['precio'],
-                    "discount" => (float) $data[0]['descuento'],
-                    "taxes" => [
-                        [
-                            "id" => (int) $data[0]['declara_iva']
-                        ]
-                    ]
-                ]
-            ],
-            "payments" => [
-                [
-                    "id" => (int) $data[0]['id_medio_pago'],
-                    "value" => (float) $data[0]['valor_pago'],
-                    "due_date" => $data[0]['fecha_pago']
-                ]
-            ],
+            "items" => $items,
+            "payments" => $payments,
             "additional_fields" => new stdClass() // Objeto vacío
         ];
 
         // $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+        // echo '<pre>';
+        // print_r($jsonData);
+        // echo '</pre>';
+        // die();
 
         return $mappedData;
     }

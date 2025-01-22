@@ -1,4 +1,5 @@
 *.env
+.env
 *.env copy
 ./test.php
 ./endpoint.json
