@@ -22,29 +22,19 @@ function crearFactura()
         //! Obtiene la info de la base de datos
         $queryHandler = new QueryHandler();
         $data = $queryHandler->getInvoice($idFactura);
+        $methodsPay = $queryHandler->getMethodsPay($idFactura);
 
-        // echo '<pre>';
-        // print_r($data);
-        // echo '</pre>';
-        // die();
-
-        $data[0]['num_factura'] = '28239';
-        $data[0]['nit_sin_df'] = '8300033684';
-        $data[0]['direccion'] = 'CRA 13A 77A 64';
-        $data[0]['correodestinatario'] = 'gramirez@pruebas.com.co';
-        $data[0]['vendedor'] = '62';
-        $data[0]['codigo_producto'] = '070273-17923';
-        $data[0]['declara_iva'] = '19203';
-        $data[0]['id_medio_pago'] = '8113';
-        $data[0]['valor_pago'] = '71400';
+        $options = [
+            "num_factura" => "29193",
+            "nit_sin_df" => "1020477",
+            "vendedor" => '851',
+            "codigo_producto" => "SALUD02",
+            "declara_iva" => "19228",
+            "id_medio_pago" => '9439'
+        ];
 
         //! Mapea la informacion para procesarla
-        $mapInvoice = $invoiceMapped->createJson($data);
-
-        // echo '<pre>';
-        // print_r($mapInvoice);
-        // echo '</pre>';
-        // die();
+        $mapInvoice = $invoiceMapped->createJson($data, $options);
 
         //! Crea la factura en base a los datos procesados anteriormente
         $response = $siigo->createInvoice($token, $mapInvoice);
@@ -84,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-    <form action="" method="post">
+    <form action="http://localhost/clien-siigo/" method="post">
         <button type="submit">Crear factura</button>
     </form>
 
