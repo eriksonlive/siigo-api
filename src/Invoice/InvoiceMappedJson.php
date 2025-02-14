@@ -38,9 +38,10 @@ class InvoiceMappedJson
 
         $mappedData = [
             "document" => [
-                "id" => $result[0]['num_factura'] // Usamos 'num_factura' como ID
+                "id" => $result[0]['num_factura'], // Usamos 'num_factura' como ID
             ],
             "date" => date("Y-m-d"), // Fecha actual
+            "number" => $result[0]['num_fac'],
             "customer" => [
                 "person_type" => $result[0]['tipo_persona'] === 'Natural' ? "Person" : "Company",
                 "id_type" => $result[0]['tipo_persona'] === 'Natural' ? "13" : "31", // Código ficticio para tipo de identificación (modifícalo según tu lógica)
@@ -86,6 +87,7 @@ class InvoiceMappedJson
         // echo '<pre>';
         // print_r($jsonData);
         // echo '</pre>';
+        // echo '<br />';
         // die();
 
         return $mappedData;
@@ -110,6 +112,7 @@ class InvoiceMappedJson
                 $result[$num_factura] = [
                     "department_id" => $item["department_id"],
                     "num_factura" => $item["num_factura"],
+                    "num_fac" => $item["num_fac"],
                     "fecha_factura" => $item["fecha_factura"],
                     "tipo_persona" => $item["tipo_persona"],
                     "nit_sin_df" => $item["nit_sin_df"],

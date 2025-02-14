@@ -141,7 +141,7 @@ class QueryHandler
             WHERE
                 ar.id = :id 
             AND
-                 i.sellprice > 0;
+                i.sellprice > 0;
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -150,5 +150,141 @@ class QueryHandler
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return $data;
+    }
+
+    public function getArIntegrationErp()
+    {
+        $sql = "SELECT COUNT(*) as total FROM public.ar_integration_erp";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $data[0];
+    }
+
+    public function setArIntegrationErp()
+    {
+        $sql = "
+            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, Integration_status)
+            SELECT id, invnumber, 'pendiente'
+            FROM public.ar
+            WHERE 
+                department_id > 0
+                AND id NOT IN (SELECT ar_id FROM public.ar_integration_erp)
+                AND invnumber NOT ILIKE '%ANULADA%'
+            LIMIT 5
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        $data = $stmt->rowCount();
+
+        return $data;
+    }
+
+    public function proccessErp($limit)
+    {
+        $sql = "
+            SELECT * FROM public.ar_integration_erp 
+            WHERE (Integration_status = 'pendiente' OR (Integration_status = 'error' AND reintentos < 3))
+            ORDER BY integration_date ASC 
+            LIMIT :limite;
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limite', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $data;
+    }
+
+    public function setStatusErpProccess($idRegistro)
+    {
+        $stmtUpdate = $this->conn->prepare("
+            UPDATE public.ar_integration_erp 
+            SET Integration_status = 'procesando', integration_date = NOW() 
+            WHERE id = :id
+        ");
+        $stmtUpdate->execute([':id' => $idRegistro]);
+    }
+
+    public function setStatusErpOk($response, $idRegistro)
+    {
+        $sql = "
+            UPDATE public.ar_integration_erp 
+            SET integration_response = :response,
+                Integration_status = 'procesado',
+                integration_date = NOW()
+            WHERE id = :id
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            ':response' => json_encode($response),
+            ':id'       => $idRegistro
+        ]);
+    }
+
+    // public function setStatusErpError($e, $idRegistro)
+    // {
+    //     $stmt = $this->conn->prepare("
+    //         UPDATE public.ar_integration_erp 
+    //         SET integration_response = :error,
+    //             Integration_status = 'error',
+    //             integration_date = NOW()
+    //         WHERE id = :id
+    //     ");
+    //     $stmt->execute([
+    //         ':error' => $e,
+    //         ':id'    => $idRegistro
+    //     ]);
+    // }
+
+    public function getErrorInvoices()
+    {
+        $sql = "SELECT * FROM public.ar_integration_erp 
+                WHERE integration_status = 'error' 
+                  AND reintentos < 3";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function setStatusErpError($error, $idRegistro)
+    {
+        // Obtiene el número actual de reintentos para esta factura
+        $sqlSelect = "SELECT reintentos FROM public.ar_integration_erp WHERE id = :id";
+        $stmtSelect = $this->conn->prepare($sqlSelect);
+        $stmtSelect->execute([':id' => $idRegistro]);
+        $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+        $reintentos = $result ? (int)$result['reintentos'] : 0;
+
+        // Incrementa el contador
+        $reintentos++;
+
+        // Define el nuevo estado: si se han intentado menos de 3 veces, lo dejamos en 'error';
+        // si se llega a 3, se marca como 'failed'
+        $nuevoEstado = ($reintentos < 3) ? 'error' : 'failed';
+
+        // Actualiza el registro con el mensaje de error, el nuevo estado y el contador de reintentos
+        $sqlUpdate = "UPDATE public.ar_integration_erp 
+                  SET integration_response = :error,
+                      integration_status = :estado,
+                      reintentos = :reintentos,
+                      integration_date = NOW()
+                  WHERE id = :id";
+        $stmtUpdate = $this->conn->prepare($sqlUpdate);
+        $stmtUpdate->execute([
+            ':error'      => $error,
+            ':estado'     => $nuevoEstado,
+            ':reintentos' => $reintentos,
+            ':id'         => $idRegistro
+        ]);
+
+        return $stmtUpdate->rowCount();
     }
 }
