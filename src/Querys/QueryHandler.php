@@ -3,6 +3,7 @@
 namespace App\Querys;
 
 use App\Connection\Connection;
+use Exception;
 use PDO;
 
 class QueryHandler
@@ -141,7 +142,7 @@ class QueryHandler
             WHERE
                 ar.id = :id 
             AND
-                i.sellprice > 0;
+                 i.sellprice > 0;
         ";
 
         $stmt = $this->conn->prepare($sql);
@@ -163,32 +164,75 @@ class QueryHandler
         return $data[0];
     }
 
-    public function setArIntegrationErp()
+    public function setArIntegrationErp($mode, $value1, $value2 = null)
     {
-        $sql = "
-            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, Integration_status)
+        // Construcción dinámica del SQL según el modo seleccionado
+        $sql = "";
+
+        if ($mode === 'single') {
+            // Inserción con un ID específico
+            $sql = "
+            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, integration_status)
             SELECT id, invnumber, 'pendiente'
             FROM public.ar
-            WHERE 
-                department_id > 0
-                AND id NOT IN (SELECT ar_id FROM public.ar_integration_erp)
-                AND invnumber NOT ILIKE '%ANULADA%'
-            LIMIT 5
+            WHERE id = :value1
+            ON CONFLICT (ar_id) DO NOTHING;
         ";
+        } elseif ($mode === 'range') {
+            // Inserción dentro de un rango de IDs
+            $sql = "
+            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, integration_status)
+            SELECT id, invnumber, 'pendiente'
+            FROM public.ar
+            WHERE id BETWEEN :value1 AND :value2
+            ON CONFLICT (ar_id) DO NOTHING;
+        ";
+        } elseif ($mode === 'from') {
+            // Inserción a partir de un número de ID en adelante
+            $sql = "
+            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, integration_status)
+            SELECT id, invnumber, 'pendiente'
+            FROM public.ar
+            WHERE id >= :value1
+            ON CONFLICT (ar_id) DO NOTHING;
+        ";
+        } elseif ($mode === 'list' && is_array($value1) && !empty($value1)) {
+            // Inserción con una lista de IDs específicos
+            $placeholders = implode(',', array_fill(0, count($value1), '?')); // Genera ?,?,? dinámicamente
+            $sql = "
+            INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, integration_status)
+            SELECT id, invnumber, 'pendiente'
+            FROM public.ar
+            WHERE id IN ($placeholders)
+            ON CONFLICT (ar_id) DO NOTHING;
+        ";
+        } else {
+            throw new Exception("Modo de inserción no válido.");
+        }
 
+        // Preparar la consulta
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
 
-        $data = $stmt->rowCount();
+        // Bind de los valores según el modo
+        if ($mode === 'list') {
+            $stmt->execute($value1); // Ejecuta con array directamente
+        } else {
+            $stmt->bindParam(':value1', $value1, PDO::PARAM_INT);
+            if ($mode === 'range') {
+                $stmt->bindParam(':value2', $value2, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+        }
 
-        return $data;
+        // Retornar la cantidad de registros insertados
+        return $stmt->rowCount();
     }
 
     public function proccessErp($limit)
     {
         $sql = "
             SELECT * FROM public.ar_integration_erp 
-            WHERE (Integration_status = 'pendiente' OR (Integration_status = 'error' AND reintentos < 3))
+            WHERE (Integration_status = 'pendiente' OR Integration_status = 'procesando' OR (Integration_status = 'error' AND reintentos < 3))
             ORDER BY integration_date ASC 
             LIMIT :limite;
         ";
@@ -229,29 +273,43 @@ class QueryHandler
         ]);
     }
 
-    // public function setStatusErpError($e, $idRegistro)
-    // {
-    //     $stmt = $this->conn->prepare("
-    //         UPDATE public.ar_integration_erp 
-    //         SET integration_response = :error,
-    //             Integration_status = 'error',
-    //             integration_date = NOW()
-    //         WHERE id = :id
-    //     ");
-    //     $stmt->execute([
-    //         ':error' => $e,
-    //         ':id'    => $idRegistro
-    //     ]);
-    // }
-
     public function getErrorInvoices()
     {
-        $sql = "SELECT * FROM public.ar_integration_erp 
+        $sql = "SELECT * FROM ar_integration_erp 
                 WHERE integration_status = 'error' 
                   AND reintentos < 3";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function createArIntegrationErp()
+    {
+        $sql = "
+            CREATE TABLE IF NOT EXISTS public.ar_integration_erp
+            (
+                id serial,
+                ar_id bigint,
+                integration_invnumber bigint,
+                integration_date timestamp with time zone DEFAULT ('now'),
+                integration_request text,
+                integration_response text,
+                Integration_status character varying(10),
+                reintentos integer DEFAULT 0,
+                CONSTRAINT id_pki PRIMARY KEY (id),
+                CONSTRAINT ar_id FOREIGN KEY (ar_id)
+                    REFERENCES public.ar (id) MATCH SIMPLE
+                    ON UPDATE NO ACTION
+                    ON DELETE NO ACTION
+            );
+        ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result;
     }
 
     public function setStatusErpError($error, $idRegistro)

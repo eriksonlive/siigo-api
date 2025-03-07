@@ -2,6 +2,8 @@
 
 namespace App\Invoice;
 
+use App\Options\ErrorsDump;
+
 class InvoiceMappedJson
 {
     public function createJson($data, $dataOptions = [])
@@ -20,11 +22,11 @@ class InvoiceMappedJson
                 "quantity" => (int) $vl['cantidad'],
                 "price" => (float) $vl['precio'],
                 "discount" => (float) $vl['descuento'],
-                "taxes" => [
-                    [
-                        "id" => (int) $vl['declara_iva']
-                    ]
-                ]
+                // "taxes" => [
+                //     [
+                //         "id" => (int) $vl['declara_iva']
+                //     ]
+                // ]
             ];
         }
 
@@ -38,7 +40,7 @@ class InvoiceMappedJson
 
         $mappedData = [
             "document" => [
-                "id" => $result[0]['num_factura'], // Usamos 'num_factura' como ID
+                "id" => $result[0]['type_fact'], // Usamos 'num_factura' como ID
             ],
             "date" => date("Y-m-d"), // Fecha actual
             "number" => $result[0]['num_fac'],
@@ -84,11 +86,7 @@ class InvoiceMappedJson
         // !Este codigo transforma el mappedData en Json, con esot verificamos la estructura final
         // $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-        // echo '<pre>';
-        // print_r($jsonData);
-        // echo '</pre>';
-        // echo '<br />';
-        // die();
+        // ErrorsDump::errors($jsonData, 'print', true);
 
         return $mappedData;
     }
@@ -107,12 +105,24 @@ class InvoiceMappedJson
                 }
             }
 
+            if (preg_match('/^([A-Za-z]+)(\d+)$/', $num_factura, $coincidencias)) {
+                $letras  = $coincidencias[1]; // Primera parte: letras
+                $numeros = $coincidencias[2]; // Segunda parte: números
+
+                // echo "Letras: $letras\n";
+                // echo "Números: $numeros\n";
+            } else {
+                echo "El formato de la cadena no coincide con el patrón esperado.\n";
+            }
+
             // Si la factura aún no está en el array, se agrega con los datos generales
             if (!isset($result[$num_factura])) {
                 $result[$num_factura] = [
                     "department_id" => $item["department_id"],
-                    "num_factura" => $item["num_factura"],
-                    "num_fac" => $item["num_fac"],
+                    // "num_factura" => $item["num_factura"],
+                    "type_fact" => $item["type_fact"],
+                    "num_fac" => $numeros,
+                    // "num_fac" => $numeros,
                     "fecha_factura" => $item["fecha_factura"],
                     "tipo_persona" => $item["tipo_persona"],
                     "nit_sin_df" => $item["nit_sin_df"],

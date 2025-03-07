@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Options\PrintDump;
 use Srdorado\SiigoClient\Enum\ClientType;
 use Srdorado\SiigoClient\Factory\ClientFactory;
 use Srdorado\SiigoClient\Model\Entity;
@@ -101,6 +102,7 @@ class InvoiceController
         // Verificar si la respuesta es exitosa
         if ($response) {
             echo "Factura creada correctamente:\n";
+            PrintDump::print_dump($response, 'print');
             // print_r($response);  // Muestra los detalles de la factura creada
         } else {
             echo "Error al crear la factura.\n";
