@@ -2,7 +2,7 @@
 
 namespace App\Invoice;
 
-use App\Options\ErrorsDump;
+use App\Options\PrintDump;
 
 class InvoiceMappedJson
 {
@@ -84,9 +84,8 @@ class InvoiceMappedJson
         ];
 
         // !Este codigo transforma el mappedData en Json, con esot verificamos la estructura final
-        // $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-        // ErrorsDump::errors($jsonData, 'print', true);
+        $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        PrintDump::print_dump($jsonData, 'print', true);
 
         return $mappedData;
     }
@@ -105,14 +104,15 @@ class InvoiceMappedJson
                 }
             }
 
-            if (preg_match('/^([A-Za-z]+)(\d+)$/', $num_factura, $coincidencias)) {
-                $letras  = $coincidencias[1]; // Primera parte: letras
+            if (preg_match('/^([A-Za-z]+)-?(\d+)$/', $num_factura, $coincidencias)) {
+                // $letras  = $coincidencias[1]; // Primera parte: letras
                 $numeros = $coincidencias[2]; // Segunda parte: números
 
                 // echo "Letras: $letras\n";
                 // echo "Números: $numeros\n";
             } else {
-                echo "El formato de la cadena no coincide con el patrón esperado.\n";
+                $numeros = $num_factura;
+                // echo "El formato de la cadena no coincide con el patrón esperado.\n";
             }
 
             // Si la factura aún no está en el array, se agrega con los datos generales

@@ -31,7 +31,7 @@ class QueryHandler
         return $data;
     }
 
-    public function getInvoice($id_factura)
+    public function getInvoice($id_factura, $mode = '')
     {
         $sql = "
             SELECT 
@@ -146,7 +146,13 @@ class QueryHandler
         ";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['id' => $id_factura]);
+        if ($mode == 'list') {
+            foreach ($id_factura as $id_fac) {
+                $stmt->execute(['id' => $id_fac]);
+            }
+        } else {
+            $stmt->execute(['id' => $id_factura]);
+        }
 
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -341,6 +347,23 @@ class QueryHandler
             ':estado'     => $nuevoEstado,
             ':reintentos' => $reintentos,
             ':id'         => $idRegistro
+        ]);
+
+        return $stmtUpdate->rowCount();
+    }
+
+    public function setErrorErpData($error, $idRegistro)
+    {
+        $sql = "UPDATE public.ar_integration_erp 
+                SET integration_response = :error,
+                    integration_status = 'failed',
+                    integration_date = NOW()
+                WHERE ar_id = :id;";
+
+        $stmtUpdate = $this->conn->prepare($sql);
+        $stmtUpdate->execute([
+            ':error' => $error,
+            ':id' => $idRegistro
         ]);
 
         return $stmtUpdate->rowCount();

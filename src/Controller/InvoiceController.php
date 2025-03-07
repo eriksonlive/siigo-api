@@ -100,13 +100,13 @@ class InvoiceController
         $response = $clientInvoice->create($entity);
 
         // Verificar si la respuesta es exitosa
-        if ($response) {
-            echo "Factura creada correctamente:\n";
-            PrintDump::print_dump($response, 'print');
-            // print_r($response);  // Muestra los detalles de la factura creada
-        } else {
-            echo "Error al crear la factura.\n";
-        }
+        // if ($response) {
+        //     echo "Factura creada correctamente:\n";
+        //     PrintDump::print_dump($response, 'print');
+        //     // print_r($response);  // Muestra los detalles de la factura creada
+        // } else {
+        //     echo "Error al crear la factura.\n";
+        // }
 
         return $response;
     }

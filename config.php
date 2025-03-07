@@ -9,10 +9,12 @@
 return [
     'query_mode' => [
         'mode' => 'single',
-        'init_id_fac' => 6245,
-        'final_id_fac' => 6250,
-        'ciclo' => 5,
-        'pausa' => 2
+        // 'init_id_fac' => [6340, 6341, 6342, 6343, 6244],
+        'init_id_fac' => 6472,
+        'final_id_fac' => 6472,
+        'ciclo' => 10,
+        'pausa' => 1,
+        'range_numeration_siigo' => [1, 9999]
     ],
     'siigo_params' => [
         "type_fact" => "29193",
