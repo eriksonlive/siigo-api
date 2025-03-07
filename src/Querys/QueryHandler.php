@@ -198,7 +198,7 @@ class QueryHandler
         ";
         } elseif ($mode === 'list' && is_array($value1) && !empty($value1)) {
             // Inserción con una lista de IDs específicos
-            $placeholders = implode(',', array_fill(0, count($value1), '?')); // Genera ?,?,? dinámicamente
+            $placeholders = \implode(',', array_fill(0, count($value1), '?')); // Genera ?,?,? dinámicamente
             $sql = "
             INSERT INTO public.ar_integration_erp (ar_id, integration_invnumber, integration_status)
             SELECT id, invnumber, 'pendiente'

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
+$config = require_once __DIR__ . '/config.php';
 
 use App\Controller\InvoiceController;
 use App\Invoice\InvoiceMappedJson;
@@ -9,7 +10,7 @@ use App\Querys\QueryHandler;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
 
-function crearFactura()
+function crearFactura($config)
 {
     $invoiceMapped = new InvoiceMappedJson();
     $siigo = new InvoiceController();
@@ -17,19 +18,20 @@ function crearFactura()
 
     //! Obtiene la info de la base de datos
     $token = $siigo->getToken();
-    $idFactura = "6245";
-    $idFac = "6330";
+    $mode = $config['query_mode']['mode'];
+    $initId = $config['query_mode']['init_id_fac'];
+    $finalId = $config['query_mode']['final_id_fac'];
+    $ciclo = $config['query_mode']['ciclo'];
+    $pausa = $config['query_mode']['pausa'];
 
-    $data = $queryHandler->getInvoice($idFactura);
+    $data = $queryHandler->getInvoice($initId);
     $pendingErrors = $queryHandler->getErrorInvoices();
 
-    //! PrintDump::print_dump($data, 'print');
-
-    if (count($pendingErrors) > 0) {
+    if (\count($pendingErrors) > 0) {
         $res = $pendingErrors;
     } else {
-        $queryHandler->setArIntegrationErp('range', $idFactura, $idFac);
-        $res = $queryHandler->proccessErp(2);
+        $queryHandler->setArIntegrationErp($mode, $initId, $finalId);
+        $res = $queryHandler->proccessErp($ciclo);
     }
 
     foreach ($res as $register) {
@@ -39,20 +41,10 @@ function crearFactura()
         $queryHandler->setStatusErpProccess($idRegister);
 
         try {
-
             $data = $queryHandler->getInvoice($arId);
 
-            $options = [
-                "type_fact" => "29193",
-                // "num_fac" => "4832",
-                "vendedor" => '856',
-                "codigo_producto" => "954105",
-                // "declara_iva" => "12766",
-                "id_medio_pago" => '9439'
-            ];
-
             //! Mapea la informacion para procesarla
-            $mapInvoice = $invoiceMapped->createJson($data, $options);
+            $mapInvoice = $invoiceMapped->createJson($data, $config['siigo_params']);
 
             //! Crea la factura en base a los datos procesados anteriormente
             $response = $siigo->createInvoice($token, $mapInvoice);
@@ -72,7 +64,7 @@ function crearFactura()
         }
     }
 
-    sleep(5);
+    sleep($pausa);
 }
 
-crearFactura();
+crearFactura($config);

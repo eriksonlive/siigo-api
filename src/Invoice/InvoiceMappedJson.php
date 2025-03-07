@@ -10,7 +10,7 @@ class InvoiceMappedJson
     {
         $result = $this->formatData($data, $dataOptions);
         // Convertir resultado a un array indexado
-        $result = array_values($result);
+        $result = \array_values($result);
 
         $items = [];
         $payments = [];

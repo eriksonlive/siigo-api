@@ -8,11 +8,11 @@ class PrintDump
     {
         if ($method == 'print') {
             echo '<pre>';
-            print_r($error);
+            \print_r($error);
             echo '</pre>';
-        } else if ($method == 'dump') {
+        } else {
             echo '<pre>';
-            var_dump($error);
+            \var_dump($error);
             echo '</pre>';
         }
 
