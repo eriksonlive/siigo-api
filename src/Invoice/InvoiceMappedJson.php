@@ -2,11 +2,11 @@
 
 namespace App\Invoice;
 
-use App\Options\PrintDump;
+use App\Tools\PrintDump;
 
 class InvoiceMappedJson
 {
-    public function createJson($data, $dataOptions = [])
+    public function createJson($data, $auto_num, $dataOptions = [])
     {
         $result = $this->formatData($data, $dataOptions);
         // Convertir resultado a un array indexado
@@ -43,7 +43,6 @@ class InvoiceMappedJson
                 "id" => $result[0]['type_fact'], // Usamos 'num_factura' como ID
             ],
             "date" => date("Y-m-d"), // Fecha actual
-            "number" => $result[0]['num_fac'],
             "customer" => [
                 "person_type" => $result[0]['tipo_persona'] === 'Natural' ? "Person" : "Company",
                 "id_type" => $result[0]['tipo_persona'] === 'Natural' ? "13" : "31", // Código ficticio para tipo de identificación (modifícalo según tu lógica)
@@ -83,9 +82,13 @@ class InvoiceMappedJson
             "payments" => $payments
         ];
 
+        if (!$auto_num) {
+            $mappedData["number"] = $result[0]['num_fac'];
+        }
+
         // !Este codigo transforma el mappedData en Json, con esot verificamos la estructura final
-        $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        PrintDump::print_dump($jsonData, 'print', true);
+        // $jsonData = json_encode($mappedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        // PrintDump::print_dump($jsonData, 'print', true);
 
         return $mappedData;
     }

@@ -5,7 +5,7 @@ $config = require_once __DIR__ . '/config.php';
 
 use App\Controller\InvoiceController;
 use App\Invoice\InvoiceMappedJson;
-use App\Options\PrintDump;
+use App\Tools\PrintDump;
 use App\Querys\QueryHandler;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
@@ -23,7 +23,9 @@ function crearFactura($config)
     $finalId = $config['query_mode']['final_id_fac'];
     $ciclo = $config['query_mode']['ciclo'];
     $pausa = $config['query_mode']['pausa'];
-    $range = $config['query_mode']['range_numeration_siigo'];
+
+    $range = $config['siigo_conf']->range_numeration_siigo;
+    $auto_num = $config['siigo_conf']->num_automatic;
 
     $data = $queryHandler->getInvoice($initId, $mode);
     // PrintDump::print_dump($data);
@@ -52,7 +54,7 @@ function crearFactura($config)
                 $data = $queryHandler->getInvoice($arId);
 
                 //! Mapea la informacion para procesarla
-                $mapInvoice = $invoiceMapped->createJson($data, $config['siigo_params']);
+                $mapInvoice = $invoiceMapped->createJson($data, $auto_num, $config['siigo_params']);
 
                 //! Crea la factura en base a los datos procesados anteriormente
                 $response = $siigo->createInvoice($token, $mapInvoice);

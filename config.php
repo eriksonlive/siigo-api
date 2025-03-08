@@ -6,6 +6,7 @@
 // From: este se utiliza para que a partir del id inicial se procesen las facturas hacia adelante
 // List: este modo se maneja haciendo un array de facturas por id [6245, 6324, 6642, ...] para tener un control de lo que se procesa
 
+
 return [
     'query_mode' => [
         'mode' => 'single',
@@ -13,8 +14,7 @@ return [
         'init_id_fac' => 6472,
         'final_id_fac' => 6472,
         'ciclo' => 10,
-        'pausa' => 1,
-        'range_numeration_siigo' => [1, 9999]
+        'pausa' => 1
     ],
     'siigo_params' => [
         "type_fact" => "29193",
@@ -23,5 +23,9 @@ return [
         "codigo_producto" => "954105",
         // "declara_iva" => "12766",
         "id_medio_pago" => '9439'
+    ],
+    'siigo_conf' => (object)[
+        'range_numeration_siigo' => [3724, 5000],
+        'num_automatic' => true
     ]
 ];

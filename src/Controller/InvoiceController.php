@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Options\PrintDump;
+use App\Tools\PrintDump;
 use Srdorado\SiigoClient\Enum\ClientType;
 use Srdorado\SiigoClient\Factory\ClientFactory;
 use Srdorado\SiigoClient\Model\Entity;
