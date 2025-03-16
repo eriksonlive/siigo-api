@@ -6,5 +6,7 @@
 
 rest
 
-./config.php
 config.php
+./config.php
+
+config-copy.php

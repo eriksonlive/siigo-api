@@ -21,6 +21,7 @@ class ConfigGeneral
             'ciclo' => 10,
             'pausa' => 1
         ],
+
         public $siigoParams = [
             "type_fact" => "29193",
             // "num_fac" => "4832",
