@@ -33,15 +33,15 @@ class ConfigGeneral
             'range_numeration_siigo' => [1, 9999999999],
             'num_automatic' => true
         ],
-        public $dbHost = "localhost",
-        public $dbName = "siigo",
-        public $dbUser = "postgres",
-        public $dbPass = "123456",
+        public $dbHost = "host",
+        public $dbName = "db_name",
+        public $dbUser = "db_user",
+        public $dbPass = "db_pass",
 
         public $baseUrl = "https://api.siigo.com/",
-        public $siigoUsername = "sandbox@siigoapi.com",
-        public $siigoAccessKey = "NDllMzI0NmEtNjExZC00NGM3LWE3OTQtMWUyNTNlZWU0ZTM0OkosU2MwLD4xQ08=",
-        public $scope = "SGM"
+        public $siigoUsername = "siigo user",
+        public $siigoAccessKey = "siigo access key",
+        public $scope = "siigo scope"
     ) {}
 
     public function getQueryMode()

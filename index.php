@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/bootstrap.php';
-$config = require_once __DIR__ . '/config.php';
 
 use App\Controller\InvoiceController;
 use App\Invoice\InvoiceMappedJson;
@@ -9,6 +8,8 @@ use App\Tools\PrintDump;
 use App\Querys\QueryHandler;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ServerException;
+
+$config = new ConfigGeneral();
 
 function crearFactura($config)
 {
@@ -18,14 +19,14 @@ function crearFactura($config)
 
     //! Obtiene la info de la base de datos
     $token = $siigo->getToken();
-    $mode = $config['query_mode']['mode'];
-    $initId = $config['query_mode']['init_id_fac'];
-    $finalId = $config['query_mode']['final_id_fac'];
-    $ciclo = $config['query_mode']['ciclo'];
-    $pausa = $config['query_mode']['pausa'];
+    $mode = $config->getQuerymode()['mode'];
+    $initId = $config->getQuerymode()['init_id_fac'];
+    $finalId = $config->getQuerymode()['final_id_fac'];
+    $ciclo = $config->getQuerymode()['ciclo'];
+    $pausa = $config->getQuerymode()['pausa'];
 
-    $range = $config['siigo_conf']->range_numeration_siigo;
-    $auto_num = $config['siigo_conf']->num_automatic;
+    $range = $config->getSiigoConf()["range_numeration_siigo"];
+    $auto_num = $config->getSiigoConf()["num_automatic"];
 
     $data = $queryHandler->getInvoice($initId, $mode);
     // PrintDump::print_dump($data);
@@ -54,7 +55,7 @@ function crearFactura($config)
                 $data = $queryHandler->getInvoice($arId);
 
                 //! Mapea la informacion para procesarla
-                $mapInvoice = $invoiceMapped->createJson($data, $auto_num, $config['siigo_params']);
+                $mapInvoice = $invoiceMapped->createJson($data, $auto_num, $config->siigoParams);
 
                 //! Crea la factura en base a los datos procesados anteriormente
                 $response = $siigo->createInvoice($token, $mapInvoice);

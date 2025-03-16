@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Tools\PrintDump;
+use ConfigGeneral;
 use Srdorado\SiigoClient\Enum\ClientType;
 use Srdorado\SiigoClient\Factory\ClientFactory;
 use Srdorado\SiigoClient\Model\Entity;
@@ -16,10 +16,13 @@ class InvoiceController
 
     public function __construct()
     {
-        $this->base_url = $_ENV['BASE_URL'];
-        $this->siigo_user = $_ENV['SIIGO_USERNAME'];
-        $this->siigo_key = $_ENV['SIIGO_ACCESS_KEY'];
-        $this->scope = $_ENV['SCOPE'];
+
+        $conf = new ConfigGeneral();
+
+        $this->base_url = $conf->getBaseUrl() ?: $_ENV['BASE_URL'];
+        $this->siigo_user = $conf->getSiigoUsername() ?: $_ENV['SIIGO_USERNAME'];
+        $this->siigo_key = $conf->getSiigoAccessKey() ?: $_ENV['SIIGO_ACCESS_KEY'];
+        $this->scope = $conf->getScope() ?: $_ENV['SCOPE'];
     }
 
     public function getToken()
@@ -102,8 +105,6 @@ class InvoiceController
         // Verificar si la respuesta es exitosa
         // if ($response) {
         //     echo "Factura creada correctamente:\n";
-        //     PrintDump::print_dump($response, 'print');
-        //     // print_r($response);  // Muestra los detalles de la factura creada
         // } else {
         //     echo "Error al crear la factura.\n";
         // }

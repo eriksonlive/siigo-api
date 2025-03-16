@@ -5,3 +5,6 @@
 ./endpoint.json
 
 rest
+
+./config.php
+config.php

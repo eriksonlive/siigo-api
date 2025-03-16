@@ -2,6 +2,8 @@
 
 namespace App\Connection;
 
+use App\Tools\PrintDump;
+use ConfigGeneral;
 use PDO;
 use PDOException;
 
@@ -14,10 +16,12 @@ class Connection
 
     public function __construct()
     {
-        $this->host = $_ENV['DB_HOST'] ?: 'localhost';
-        $this->dbname = $_ENV['DB_NAME'] ?: 'database';
-        $this->user = $_ENV['DB_USER'] ?: 'root';
-        $this->password = $_ENV['DB_PASSWORD'] ?: '';
+        $conf = new ConfigGeneral();
+
+        $this->host = $conf->getDbHost() ?: $_ENV['DB_HOST'];
+        $this->dbname = $conf->getDbName() ?: $_ENV['DB_NAME'];
+        $this->user = $conf->getDbUser() ?: $_ENV['DB_USER'];
+        $this->password = $conf->getDbPass()  ?: $_ENV['DB_PASSWORD'];
     }
 
     public function getConnect(): PDO
